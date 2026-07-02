@@ -1,34 +1,23 @@
-# Dependency directories
+# Dependency folders
 node_modules/
-backend/node_modules/
-frontend/node_modules/
 
-# Local databases & fallbacks
-backend/data/
-*.db
+# Local configuration
+.env
+.env.local
 
-# Build outputs
+# Build files
 dist/
-frontend/dist/
 build/
 
-# Environments & secrets
-.env
-backend/.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Local transactional database data
+backend/data/orders.json
+backend/data/order_items.json
+backend/data/reviews.json
 
-# IDE configurations
+# IDE settings
 .vscode/
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
 
-# OS metadata
-.DS_Store
+# OS files
 Thumbs.db
+.DS_Store

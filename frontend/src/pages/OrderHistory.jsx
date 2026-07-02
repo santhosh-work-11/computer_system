@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Search, FileText, Truck, Calendar, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { isStaticDemo, mockAPI } from '../utils/apiFallback';
 
 const OrderHistory = () => {
   const { token } = useAuth();
@@ -16,6 +17,11 @@ const OrderHistory = () => {
   // Load orders history
   useEffect(() => {
     const fetchOrders = async () => {
+      if (isStaticDemo) {
+        setOrders(mockAPI.getMyOrders());
+        setLoading(false);
+        return;
+      }
       try {
         const res = await fetch('/api/orders/myorders', {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -41,11 +47,30 @@ const OrderHistory = () => {
     setTrackError('');
     setTrackedOrder(null);
     try {
+      if (isStaticDemo) {
+        const items = mockAPI.getMyOrders();
+        const found = items.find(o => 
+          o.order_number === trackQuery.trim() || 
+          o.tracking_number === trackQuery.trim()
+        );
+        if (found) {
+          setTrackedOrder({
+            order: found,
+            items: found.items || []
+          });
+        } else {
+          setTrackError('No matching order number or tracking code found.');
+        }
+        setLoadingTrack(false);
+        return;
+      }
+
       // Find order by order number or tracking code
       // We can query the orders endpoint by order number
       const res = await fetch(`/api/orders?search=${trackQuery.trim()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
       if (res.ok) {
         const data = await res.json();
         // Look up target order
@@ -85,7 +110,7 @@ const OrderHistory = () => {
   };
 
   return (
-    <div className="section-container" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }} className="history-page-layout">
+    <div className="section-container history-page-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }}>
       
       {/* List of past orders */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

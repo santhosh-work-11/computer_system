@@ -58,7 +58,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="section-container" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }} className="cart-page-layout">
+    <div className="section-container cart-page-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }}>
       
       {/* Items list container */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

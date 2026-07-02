@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { isStaticDemo, mockAPI } from '../utils/apiFallback';
 
 const CartContext = createContext(null);
 
@@ -126,6 +127,12 @@ export const CartProvider = ({ children }) => {
 
   // Apply Coupon
   const applyCouponCode = async (code) => {
+    if (isStaticDemo) {
+      const result = mockAPI.applyCoupon(code);
+      setCoupon(result);
+      return result;
+    }
+
     try {
       const response = await fetch('/api/products/coupon', {
         method: 'POST',
@@ -152,7 +159,7 @@ export const CartProvider = ({ children }) => {
 
   // Checkout API
   const checkout = async (shippingAddress, phone, paymentMethod) => {
-    if (!token) {
+    if (!token && !isStaticDemo) {
       throw new Error('Please login to place an order.');
     }
     if (cartItems.length === 0) {
@@ -165,8 +172,15 @@ export const CartProvider = ({ children }) => {
       phone,
       payment_method: paymentMethod,
       coupon_code: coupon ? coupon.code : null,
-      discount_amount: discountAmount
+      discount_amount: discountAmount,
+      total_amount: Math.max(0, getSubtotal() - discountAmount)
     };
+
+    if (isStaticDemo) {
+      const result = mockAPI.createOrder(orderPayload);
+      clearCart();
+      return result;
+    }
 
     const response = await fetch('/api/orders', {
       method: 'POST',
@@ -186,6 +200,7 @@ export const CartProvider = ({ children }) => {
     clearCart();
     return data;
   };
+
 
   return (
     <CartContext.Provider value={{

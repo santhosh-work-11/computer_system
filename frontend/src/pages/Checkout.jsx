@@ -139,7 +139,7 @@ const Checkout = () => {
   }
 
   return (
-    <div className="section-container" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }} className="checkout-layout">
+    <div className="section-container checkout-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }}>
       
       {/* Shipping details Form */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

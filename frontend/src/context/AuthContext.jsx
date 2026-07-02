@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { isStaticDemo, mockAPI } from '../utils/apiFallback';
 
 const AuthContext = createContext(null);
 
@@ -9,6 +10,15 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchUser = async () => {
+      if (isStaticDemo) {
+        const savedUser = localStorage.getItem('demo_user');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
+        setLoading(false);
+        return;
+      }
+
       if (!token) {
         setUser(null);
         setLoading(false);
@@ -42,6 +52,15 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setLoading(true);
     try {
+      if (isStaticDemo) {
+        const userData = mockAPI.login(email, password);
+        localStorage.setItem('token', userData.token);
+        localStorage.setItem('demo_user', JSON.stringify(userData));
+        setToken(userData.token);
+        setUser(userData);
+        return userData;
+      }
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,6 +85,15 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, email, password) => {
     setLoading(true);
     try {
+      if (isStaticDemo) {
+        const userData = mockAPI.register(username, email, password);
+        localStorage.setItem('token', userData.token);
+        localStorage.setItem('demo_user', JSON.stringify(userData));
+        setToken(userData.token);
+        setUser(userData);
+        return userData;
+      }
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -89,9 +117,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('demo_user');
     setToken(null);
     setUser(null);
   };
+
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>

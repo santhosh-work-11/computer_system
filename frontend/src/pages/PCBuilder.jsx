@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { Cpu, Server, HardDrive, Zap, Trash2, ShieldAlert, Plus, Check, ShoppingCart, Award } from 'lucide-react';
+import { isStaticDemo, mockAPI } from '../utils/apiFallback';
 
 const PCBuilder = () => {
   const { addToCart } = useCart();
@@ -29,14 +30,21 @@ const PCBuilder = () => {
   useEffect(() => {
     const fetchParts = async () => {
       try {
-        const res = await fetch('/api/products');
-        if (res.ok) {
-          const data = await res.json();
-          // Filter to only parts
-          const partsOnly = data.filter(p => p.type === 'part');
-          
-          // Seed additional builder specific parts if catalog is small
-          const enhancedParts = [...partsOnly];
+        let partsOnly = [];
+        if (isStaticDemo) {
+          const data = mockAPI.getProducts();
+          partsOnly = data.filter(p => p.type === 'part');
+        } else {
+          const res = await fetch('/api/products');
+          if (res.ok) {
+            const data = await res.json();
+            partsOnly = data.filter(p => p.type === 'part');
+          }
+        }
+        
+        // Seed additional builder specific parts if catalog is small
+        const enhancedParts = [...partsOnly];
+
           
           const extraSeeds = [
             { id: 100, name: 'ASUS ROG Crosshair X670E Hero', price: 649.99, discount_price: null, stock_status: 'in-stock', rating: 4.85, type: 'part', specifications: { Socket: 'AM5', Chipset: 'X670E', MemoryType: 'DDR5', FormFactor: 'ATX' }, power_usage: 50, image_url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=600', category_id: 6 },
@@ -58,7 +66,6 @@ const PCBuilder = () => {
           });
 
           setAllParts(merged);
-        }
       } catch (err) {
         console.error('Error fetching builder parts:', err);
       } finally {
@@ -232,7 +239,7 @@ const PCBuilder = () => {
   const perfScore = getPerformanceScore();
 
   return (
-    <div className="section-container" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }} className="builder-layout">
+    <div className="section-container builder-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }}>
       
       {/* Slots List Container */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

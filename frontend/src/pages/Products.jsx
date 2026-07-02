@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal, Grid, List, Search, ArrowUpDown, ShieldAlert } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import QuickViewModal from '../components/QuickViewModal';
+import { isStaticDemo, mockAPI } from '../utils/apiFallback';
 
 const Products = () => {
   const [searchParams] = useSearchParams();
@@ -36,6 +37,12 @@ const Products = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      if (isStaticDemo) {
+        setProducts(mockAPI.getProducts());
+        setCategories(mockAPI.getCategories());
+        setLoading(false);
+        return;
+      }
       try {
         const prodRes = await fetch('/api/products');
         const catRes = await fetch('/api/products/categories');
@@ -55,6 +62,7 @@ const Products = () => {
 
     fetchData();
   }, []);
+
 
   // Filter and Sort calculation
   const getFilteredProducts = () => {

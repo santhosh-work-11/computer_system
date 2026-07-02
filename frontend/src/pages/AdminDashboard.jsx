@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { DollarSign, ShoppingBag, Box, Users, Plus, Trash2, Edit, CheckCircle, Clock } from 'lucide-react';
+import { isStaticDemo, mockAPI } from '../utils/apiFallback';
 
 const AdminDashboard = () => {
   const { token } = useAuth();
@@ -34,6 +35,23 @@ const AdminDashboard = () => {
   // Load stats & catalog products
   const fetchStats = async () => {
     try {
+      if (isStaticDemo) {
+        const stats = mockAPI.getDashboardStats();
+        const prods = mockAPI.getProducts();
+        const cats = mockAPI.getCategories();
+        setMetrics(stats.metrics);
+        setRecentOrders(stats.recentOrders);
+        setMonthlyRevenue(stats.monthlyRevenue);
+        setCategorySales(stats.categorySales);
+        setProducts(prods);
+        setCategories(cats);
+        if (cats.length > 0 && !newProd.category_id) {
+          setNewProd(prev => ({ ...prev, category_id: cats[0].id }));
+        }
+        setLoading(false);
+        return;
+      }
+
       const statsRes = await fetch('/api/dashboard/stats', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -69,6 +87,29 @@ const AdminDashboard = () => {
   // Add Product Handler
   const handleAddProduct = async (e) => {
     e.preventDefault();
+    if (isStaticDemo) {
+      mockAPI.addProduct({
+        ...newProd,
+        price: parseFloat(newProd.price),
+        power_usage: parseInt(newProd.power_usage || 0),
+        category_id: parseInt(newProd.category_id)
+      });
+      setAddSuccess(true);
+      setNewProd({
+        category_id: categories[0]?.id || '',
+        name: '',
+        description: '',
+        price: '',
+        stock_status: 'in-stock',
+        image_url: '',
+        type: 'part',
+        power_usage: '0'
+      });
+      setTimeout(() => setAddSuccess(false), 3000);
+      fetchStats();
+      return;
+    }
+
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
@@ -105,6 +146,12 @@ const AdminDashboard = () => {
   // Delete Product Handler
   const handleDeleteProduct = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
+    if (isStaticDemo) {
+      mockAPI.deleteProduct(id);
+      alert('Product deleted successfully');
+      fetchStats();
+      return;
+    }
     try {
       const res = await fetch(`/api/products/${id}`, {
         method: 'DELETE',
@@ -118,6 +165,7 @@ const AdminDashboard = () => {
       console.error('Error deleting product:', err);
     }
   };
+
 
   // Update Order Status Handler
   const handleUpdateOrderStatus = async (orderId, newStatus) => {

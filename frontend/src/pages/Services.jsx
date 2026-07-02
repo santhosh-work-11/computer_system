@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Cpu, Database, Wrench, ShieldAlert, Award, Calendar, Check, Send } from 'lucide-react';
+import { isStaticDemo, mockAPI } from '../utils/apiFallback';
 
 const Services = () => {
   const [services, setServices] = useState([]);
@@ -19,6 +20,11 @@ const Services = () => {
 
   useEffect(() => {
     const fetchServices = async () => {
+      if (isStaticDemo) {
+        setServices(mockAPI.getServices());
+        setLoading(false);
+        return;
+      }
       try {
         const res = await fetch('/api/products/services');
         if (res.ok) {
@@ -33,6 +39,7 @@ const Services = () => {
     };
     fetchServices();
   }, []);
+
 
   const handleChange = (e) => {
     setFormData(prev => ({
